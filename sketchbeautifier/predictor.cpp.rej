@@ -1,0 +1,55 @@
+--- predictor.cpp
++++ predictor.cpp
+@@ -171,32 +165,40 @@
+             if (prev_types[i] == 2)
+             {
+                 GLfloat radius = predictor::euclid_dist(p1, p2);
+-                point *consider_point = NULL;
++                consider_point = NULL;
+                 if (sqrt(ABS(
+                             (start.x - p1.x) * (start.x - p1.x) +
+                             (start.y - p1.y) * (start.y - p1.y) -
+                             radius * radius
+-                            )) < MAX_DISTANCE_ALLOWED) consider_point = &start;
++                            )) < MAX_DISTANCE_ALLOWED)
++                {
++                    if (prev == NULL || !prev->clamp_point1) consider_point = &start;
++                }
+                 if (sqrt(ABS(
+                             (end.x - p1.x) * (end.x - p1.x) +
+                             (end.y - p1.y) * (end.y - p1.y) -
+                             radius * radius
+-                            )) < MAX_DISTANCE_ALLOWED * 2) consider_point = &end;
++                            )) < MAX_DISTANCE_ALLOWED * 2)
++                {
++                    if (prev == NULL || !prev->clamp_point2) consider_point = &end;
++                }
++
+                 if (consider_point != NULL)
+                 {
+                     point *circum = find_intersection_point_circle(p1, radius, consider_point);
+                     if (circum != NULL)
+                     {
+-                        predictor::answer *result = new predictor::answer;
+-                        result->primitive = predictor::LINE;
+-                        result->segments = 4;
+-                        result->path = new GLfloat[4];
++                        centre_join_result = new predictor::answer;
++                        centre_join_result->primitive = predictor::LINE;
++                        centre_join_result->segments = 4;
++                        centre_join_result->path = new GLfloat[4];
+                         point *other = (consider_point == &start) ? &end : &start;
+-                        result->path[0] = other->x;
+-                        result->path[1] = other->y;
+-                        result->path[2] = circum->x;
+-                        result->path[3] = circum->y;
+-                        return result;
++                        centre_join_result->path[0] = other->x;
++                        centre_join_result->path[1] = other->y;
++                        centre_join_result->path[2] = circum->x;
++                        centre_join_result->path[3] = circum->y;
++                        centre_join_result->score = 1 + (1 - predictor::euclid_dist(*circum, *consider_point));
++//                        return result;
+                     }
+                 }
+             }
